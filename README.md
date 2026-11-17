@@ -1,2 +1,0 @@
-# biodiversitat
-questionari
