@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qüestionari: Sostenibilitat, Río Tinto i Xarxes Elèctriques</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        #quiz-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        #progress {
+            text-align: center;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+        .question-text {
+            font-size: 1.25em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #ffffff;
+            border: 2px solid #3498db;
+            color: #2c3e50;
+            padding: 15px;
+            font-size: 1.05em;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        /* Pantalla final */
+        #result-screen {
+            display: none;
+            text-align: center;
+        }
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-restart:hover {
+            background-color: #27ae60;
+        }
+        /* Capa de Feedback (Estel / Bomba) */
+        #feedback-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(20, 20, 20, 0.92);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .feedback-icon {
+            font-size: 120px;
+            line-height: 1;
+        }
+        .feedback-msg {
+            font-size: 3em;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+        /* Animació Estel */
+        .anim-star {
+            color: #f1c40f;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        /* Animació Bomba i Explosió */
+        .anim-bomb {
+            animation: shake 0.8s linear forwards;
+        }
+        .anim-explosion {
+            animation: explodePop 0.5s ease-out forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.1) rotate(-45deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0) scale(1); }
+            20% { transform: translateX(-15px) rotate(-10deg) scale(1.2); }
+            40% { transform: translateX(15px) rotate(10deg) scale(1.4); }
+            60% { transform: translateX(-15px) rotate(-10deg) scale(1.6); }
+            80% { transform: translateX(15px) rotate(10deg) scale(1.8); }
+            100% { transform: translateX(0) scale(2.2); opacity: 0; }
+        }
+        @keyframes explodePop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(2.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-container">
+        <h1>Mòdul Entorn i Instal·lacions</h1>
+        <div id="progress">Pregunta 1 de 25</div>
+        <div id="q-text" class="question-text"></div>
+        <div id="opts" class="options-grid"></div>
+    </div>
+
+    <div id="result-screen" class="quiz-container">
+        <h1 style="font-size: 2.5em;">Qüestionari Finalitzat!</h1>
+        <p id="final-score" style="font-size: 1.5em; color: #34495e;"></p>
+        <button class="btn-restart" onclick="restartQuiz()">Tornar a jugar</button>
+    </div>
+
+    <div id="feedback-overlay">
+        <div id="f-icon" class="feedback-icon"></div>
+        <div id="f-msg" class="feedback-msg"></div>
+    </div>
+
+    <script>
+        const quizData = [
+            // BLOC SOSTENIBILITAT I MEDI AMBIENT
+            {
+                q: "Quina és la conseqüència directa de l'augment del nivell del mar pel canvi climàtic al Delta de l'Ebre?",
+                opts: [
+                    "Es reprodueixen massivament espècies com el cranc blau a l'interior dels boscos.",
+                    "L'aigua salada inunda els camps d'arròs i destrueix la biodiversitat autòctona.",
+                    "L'ecosistema augmenta la seva capacitat de regulació de l'aire.",
+                    "La sorra del Delta es solidifica i impedeix el cultiu."
+                ],
+                correct: 1
+            },
+            {
+                q: "El liti és bàsic per fabricar bateries de cotxes elèctrics. Quin problema socioambiental genera la seva extracció al desert d'Atacama?",
+                opts: [
+                    "S'utilitza exclusivament mà d'obra infantil a les mines subterrànies.",
+                    "Provoca l'emissió massiva de gasos d'efecte hivernacle.",
+                    "Es gasten milions de litres d'aigua, deixant els pobles indígenes sense aigua potable.",
+                    "Acidifica els rius propers baixant el seu pH fins a nivells letals."
+                ],
+                correct: 2
+            },
+            {
+                q: "A quin país s'extreu principalment el coltan i el cobalt utilitzant sovint condicions d'esclavitud infantil?",
+                opts: [
+                    "República Democràtica del Congo.",
+                    "Xile i Perú.",
+                    "Xina i Índia.",
+                    "Argentina i Bolívia."
+                ],
+                correct: 0
+            },
+            {
+                q: "Dins dels serveis ecosistèmics, quin d'aquests és un servei de 'Regulació'?",
+                opts: [
+                    "La provisió d'aliments i aigua dolça.",
+                    "Els arbres que purifiquen l'aire i regulen el clima.",
+                    "La creació d'espais per al turisme esportiu.",
+                    "L'extracció de matèries primeres minerals."
+                ],
+                correct: 1
+            },
+            {
+                q: "Segons els apunts, quina acció augmenta considerablement la teva 'Petjada Ecològica' personal?",
+                opts: [
+                    "Consumir productes amb embalatges reciclables.",
+                    "Utilitzar electrodomèstics d'alta eficiència energètica.",
+                    "Menjar molta carn vermella, ja que requereix molta aigua, pinso i terreny.",
+                    "Separar correctament els residus RAEE al taller."
+                ],
+                correct: 2
+            },
+            {
+                q: "Per què la desforestació és un factor directe de l'escalfament global?",
+                opts: [
+                    "Perquè la maquinària utilitzada expulsa metà a l'atmosfera.",
+                    "Perquè elimina boscos sencers i la Terra perd capacitat per absorbir CO2 de l'aire.",
+                    "Perquè allibera metalls pesants atrapats sota les arrels.",
+                    "Perquè refreda bruscament la temperatura del sòl agrícola."
+                ],
+                correct: 1
+            },
+            {
+                q: "Què conté a l'interior un tub fluorescent (residu RAEE) que el fa extremadament perillós si es trenca al medi ambient?",
+                opts: [
+                    "Liti altament reactiu.",
+                    "Metalls pesants altament contaminants com plom i mercuri.",
+                    "Pols d'urani-235.",
+                    "Sulfurs de ferro que acidifiquen la terra."
+                ],
+                correct: 1
+            },
+            {
+                q: "A l'hora d'aplicar la regla de les 3 R, a quina pertany guardar els retalls de cable en bon estat de pràctiques antigues per a futurs muntatges?",
+                opts: ["Reutilitzar.", "Reciclar.", "Reduir.", "Restaurar."],
+                correct: 0
+            },
+            // BLOC RÍO TINTO I EXTREMÒFILS
+            {
+                q: "Quin és el pH aproximat del riu Tinto que li dóna una acidesa similar a la del vinagre pur?",
+                opts: ["pH 7,0", "pH 12,5", "pH 2,2", "pH 5,5"],
+                correct: 2
+            },
+            {
+                q: "Què produeix exactament el color vermell fosc característic de l'aigua del riu Tinto?",
+                opts: [
+                    "L'abocament il·legal continuat d'una mina de coure propera.",
+                    "Una invasió massiva d'algues vermelles perden la capacitat de fer la fotosíntesi.",
+                    "L'oxidació del ferro que s'allibera quan l'aigua i l'oxigen toquen els minerals de sofre.",
+                    "La reacció química del liti i el cobalt sota l'aigua de la pluja."
+                ],
+                correct: 2
+            },
+            {
+                q: "Com aconsegueixen sobreviure els bacteris extremòfils en aquest riu altament àcid?",
+                opts: [
+                    "No necessiten gaire oxigen i es dediquen a 'menjar' i processar el ferro i el sofre de l'aigua.",
+                    "Absorbeixen la radiació solar extrema per fer una fotosíntesi inversa.",
+                    "Mengen restes d'algues i microplàstics acumulats al fons.",
+                    "Pugen a la superfície per respirar l'oxigen pur de l'atmosfera cada pocs minuts."
+                ],
+                correct: 0
+            },
+            {
+                q: "Per què el Centre d'Astrobiologia i les agències espacials proven els robots Rover al riu Tinto?",
+                opts: [
+                    "Per netejar l'òxid dels components electrònics del robot de manera natural.",
+                    "Perquè és el simulador natural de les condicions passades de Mart més precís a la Terra.",
+                    "Per comprovar com sobreviu el robot en un entorn tropical molt humit.",
+                    "Per utilitzar el riu com a pista d'aterratge per a sondes espacials petites."
+                ],
+                correct: 1
+            },
+            {
+                q: "Com a electricista, si has de muntar un quadre elèctric just a la vora del riu Tinto (entorn molt agressiu), quin Grau IP necessitaràs com a MÍNIM?",
+                opts: ["IP20", "IP44", "IP65", "IP12"],
+                correct: 2
+            },
+            {
+                q: "Què indica exactament la segona xifra d'un Índex de Protecció (per exemple, el número 7 a IP67)?",
+                opts: [
+                    "La protecció contra raigs UV del sol.",
+                    "La protecció contra l'entrada de líquids i aigua.",
+                    "La resistència davant de cops sòlids mecànics.",
+                    "El nivell de seguretat contra la pols fina."
+                ],
+                correct: 1
+            },
+            // BLOC ENERGIA I XARXES
+            {
+                q: "Per quin motiu tècnic diem que l'electricitat és una energia 'secundària' o final?",
+                opts: [
+                    "Perquè té menys potència que l'energia del sol o del vent.",
+                    "Perquè només s'utilitza quan s'acaben les reserves de combustibles fòssils.",
+                    "Perquè no es troba emmagatzemada a la natura i cal transformar altres fonts per obtenir-la.",
+                    "Perquè el seu rendiment a les centrals sempre és inferior al 50%."
+                ],
+                correct: 2
+            },
+            {
+                q: "Quin d'aquests materials primaris es considera una font d'energia NO renovable?",
+                opts: [
+                    "La biomassa provinent de restes forestals.",
+                    "L'urani-235 per a fissió nuclear.",
+                    "La calor interna de la Terra.",
+                    "L'aigua embassada en una central hidràulica."
+                ],
+                correct: 1
+            },
+            {
+                q: "D'entre totes les següents, quina és l'única gran central elèctrica que produeix electricitat sense utilitzar l'element 'turbina'?",
+                opts: [
+                    "Central Tèrmica de Cicle Combinat.",
+                    "Central Termosolar.",
+                    "Central Solar Fotovoltaica.",
+                    "Parc Eòlic (Aerogeneradors)."
+                ],
+                correct: 2
+            },
+            {
+                q: "A l'interior de la góndola d'un aerogenerador eòlic, quina funció clau realitza la 'multiplicadora'?",
+                opts: [
+                    "Elevar l'alta tensió a més de 400.000 V per poder-la transportar.",
+                    "Multiplicar la força del vent canviant l'angle de les pales de fibra de vidre.",
+                    "Augmentar la velocitat de gir (d'unes 20 voltes/min a 1500 voltes/min) per fer funcionar l'alternador.",
+                    "Convertir el corrent altern (CA) produït al rotor en corrent continu (CC)."
+                ],
+                correct: 2
+            },
+            {
+                q: "Quin principi físic aprofita un alternador (generador) per transformar moviment mecànic en corrent altern?",
+                opts: [
+                    "L'efecte Joule tèrmic.",
+                    "L'efecte fotoelèctric dels semiconductors.",
+                    "La inducció electromagnètica de Faraday.",
+                    "La termodinàmica de líquids en ebullició."
+                ],
+                correct: 2
+            },
+            {
+                q: "En una central fotovoltaica, quin dispositiu electrònic s'encarrega obligatòriament de passar de Corrent Continu a Corrent Altern a 50 Hz?",
+                opts: [
+                    "El Transformador reductor.",
+                    "L'Inversor.",
+                    "L'Estator magnètic.",
+                    "El Condensador de vapor."
+                ],
+                correct: 1
+            },
+            {
+                q: "Quins fluids mouen successivament les dues turbines diferents en una Central de Cicle Combinat (molt més eficient)?",
+                opts: [
+                    "Vapor d'aigua a pressió i oli tèrmic.",
+                    "Aigua líquida i gas metà procedent de fems.",
+                    "Els gasos de combustió cremats i posteriorment el vapor d'aigua.",
+                    "Sals foses i corrents de vent a pressió."
+                ],
+                correct: 2
+            },
+            {
+                q: "Per què s'utilitzen els transformadors per elevar enormement la tensió (ex: a 400 kV) abans de transportar l'energia grans distàncies?",
+                opts: [
+                    "Perquè la resistència del coure disminueixi automàticament.",
+                    "Per reduir dràsticament la intensitat i minimitzar les pèrdues de calor per Efecte Joule.",
+                    "Per poder transportar tota la intensitat elèctrica generada sense necessitat d'aïllants.",
+                    "Per augmentar la freqüència dels Hz i donar més potència a les indústries."
+                ],
+                correct: 1
+            },
+            {
+                q: "Quina instal·lació urbanística rep l'energia a Mitja Tensió (ex: 20 kV) i la redueix a Baixa Tensió (400 V / 230 V) per repartir-la als blocs de pisos?",
+                opts: [
+                    "L'Estació Transformadora Elevadora (ET).",
+                    "La Subestació Transformadora Reductora (STR).",
+                    "El Centre de Transformació (CT).",
+                    "La Caixa General de Protecció (CGP)."
+                ],
+                correct: 2
+            },
+            {
+                q: "Quin element de la instal·lació d'enllaç d'un edifici, que conté els fusibles generals, marca el punt on acaba la propietat de la companyia elèctrica i comença la dels veïns?",
+                opts: [
+                    "La Derivació Individual (DI).",
+                    "El Quadre General (CGMP).",
+                    "La Centralització de Comptadors.",
+                    "La Caixa General de Protecció (CGP)."
+                ],
+                correct: 3
+            },
+            {
+                q: "Aplicant la fórmula elèctrica I=P/V, si intentem transportar una potència de 200.000 W a només 400 V de tensió, quina intensitat passarà pel cable (provocant un incendi segur)?",
+                opts: [
+                    "20 Amperes.",
+                    "500 Amperes.",
+                    "8.000 Amperes.",
+                    "80.000.000 Amperes."
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let canClick = true;
+
+        const qText = document.getElementById('q-text');
+        const optsDiv = document.getElementById('opts');
+        const progress = document.getElementById('progress');
+        const overlay = document.getElementById('feedback-overlay');
+        const fIcon = document.getElementById('f-icon');
+        const fMsg = document.getElementById('f-msg');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultScreen = document.getElementById('result-screen');
+        const finalScore = document.getElementById('final-score');
+
+        function loadQuestion() {
+            if (currentQ >= quizData.length) {
+                quizContainer.style.display = 'none';
+                resultScreen.style.display = 'block';
+                finalScore.innerText = `Has encertat ${score} de ${quizData.length} preguntes.`;
+                return;
+            }
+            
+            canClick = true;
+            progress.innerText = `Pregunta ${currentQ + 1} de ${quizData.length}`;
+            qText.innerText = quizData[currentQ].q;
+            optsDiv.innerHTML = '';
+            
+            quizData[currentQ].opts.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = optText;
+                btn.onclick = () => checkAnswer(index);
+                optsDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (!canClick) return;
+            canClick = false;
+            
+            const isCorrect = (selectedIndex === quizData[currentQ].correct);
+            
+            overlay.style.display = 'flex';
+            fIcon.className = 'feedback-icon'; 
+            
+            if (isCorrect) {
+                score++;
+                fIcon.innerText = '⭐';
+                fIcon.classList.add('anim-star');
+                fMsg.innerText = 'FELICITATS!!';
+                fMsg.style.color = '#f1c40f'; // Groc estel
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    currentQ++;
+                    loadQuestion();
+                }, 1800);
+                
+            } else {
+                // Bomba equivocada
+                fIcon.innerText = '💣';
+                fIcon.classList.add('anim-bomb');
+                fMsg.innerText = '';
+                
+                // Explota als 800ms
+                setTimeout(() => {
+                    fIcon.classList.remove('anim-bomb');
+                    fIcon.innerText = '💥';
+                    fIcon.classList.add('anim-explosion');
+                    fMsg.innerText = 'Resposta Incorrecta!';
+                    fMsg.style.color = '#e74c3c'; // Vermell foc
+                    
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        currentQ++;
+                        loadQuestion();
+                    }, 1500);
+                }, 800);
+            }
+        }
+
+        function restartQuiz() {
+            currentQ = 0;
+            score = 0;
+            resultScreen.style.display = 'none';
+            quizContainer.style.display = 'block';
+            loadQuestion();
+        }
+
+        // Iniciar
+        loadQuestion();
+    </script>
+</body>
+</html>
